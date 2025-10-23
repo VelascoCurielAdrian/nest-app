@@ -22,15 +22,24 @@ export class AuthService {
     if (!loginDto) {
       throw new BadRequestException('Request body is required');
     }
-    const { email, password, isMobile } = loginDto;
+    const { username, password, isMobile } = loginDto;
 
-    // Buscar usuario por email
-    const user: User | undefined = this.usersService.findByEmail(email);
+    // Buscar usuario por username
+    const user: User | null = await this.usersService.findByUsername(username);
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
+    // Validar que el usuario esté activo
+    if (!user.status) {
+      throw new UnauthorizedException('User is inactive');
+    }
+
     // Validar contraseña (soporta hash bcrypt o texto plano en dev)
+    if (!user.password) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
     const hashed =
       typeof user.password === 'string' && user.password.startsWith('$2');
     const isValid = hashed
@@ -42,7 +51,7 @@ export class AuthService {
     }
 
     // Construir payload y firmar token
-    const payload = { sub: user.id, email: user.email };
+    const payload = { sub: user.id, username: user.username };
     const access_token = await this.jwtService.signAsync(payload);
 
     // Simular permisos/perfil (adaptar a tu dominio real)
@@ -61,19 +70,18 @@ export class AuthService {
       access_token,
       user: {
         id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        username: user.username,
       },
       permissions,
     };
   }
 
-  async verifyToken(token: string): Promise<{ sub: string; email: string }> {
+  async verifyToken(token: string): Promise<{ sub: string; username: string }> {
     try {
-      return await this.jwtService.verifyAsync<{ sub: string; email: string }>(
-        token,
-      );
+      return await this.jwtService.verifyAsync<{
+        sub: string;
+        username: string;
+      }>(token);
     } catch {
       throw new UnauthorizedException('Invalid session');
     }

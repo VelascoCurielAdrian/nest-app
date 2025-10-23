@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -6,47 +8,95 @@ import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [];
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {}
 
-  create(createUserDto: CreateUserDto): User {
-    const user: User = {
-      id: Date.now().toString(),
-      ...createUserDto,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.users.push(user);
-    return user;
+  /**
+   * Crea un nuevo usuario en la base de datos
+   */
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const user = this.userRepository.create(createUserDto);
+    return this.userRepository.save(user);
   }
 
-  findAll(): User[] {
-    return this.users;
+  /**
+   * Obtiene todos los usuarios
+   */
+  async findAll(): Promise<User[]> {
+    return this.userRepository.find({
+      order: { created_at: 'DESC' },
+    });
   }
 
-  findByEmail(email: string): User | undefined {
-    return this.users.find((u) => u.email === email);
+  /**
+   * Busca un usuario por username
+   */
+  async findByUsername(username: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { username },
+    });
   }
 
-  findOne(id: string): User {
-    const user = this.users.find((u) => u.id === id);
+  /**
+   * Busca un usuario por ID
+   */
+  async findOne(id: string): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { id },
+    });
+
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
+
     return user;
   }
 
-  update(id: string, updateUserDto: UpdateUserDto): User {
-    const user = this.findOne(id);
-    Object.assign(user, { ...updateUserDto, updatedAt: new Date() });
-    return user;
+  /**
+   * Actualiza un usuario
+   */
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    const user = await this.findOne(id);
+
+    // Merge los datos del DTO con el usuario existente
+    Object.assign(user, updateUserDto);
+
+    return this.userRepository.save(user);
   }
 
-  remove(id: string): void {
-    const index = this.users.findIndex((u) => u.id === id);
-    if (index === -1) {
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
-    this.users.splice(index, 1);
+  /**
+   * Elimina un usuario (soft delete manteniendo el registro)
+   */
+  async remove(id: string): Promise<void> {
+    const user = await this.findOne(id);
+    await this.userRepository.remove(user);
+  }
+
+  /**
+   * Desactiva un usuario (soft delete)
+   */
+  async deactivate(id: string): Promise<User> {
+    const user = await this.findOne(id);
+    user.status = false;
+    return this.userRepository.save(user);
+  }
+
+  /**
+   * Cuenta el total de usuarios
+   */
+  async count(): Promise<number> {
+    return this.userRepository.count();
+  }
+
+  /**
+   * Busca usuarios activos
+   */
+  async findActive(): Promise<User[]> {
+    return this.userRepository.find({
+      where: { status: true },
+      order: { created_at: 'DESC' },
+    });
   }
 }
