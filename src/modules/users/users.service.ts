@@ -7,7 +7,7 @@ import { User } from './entities/user.entity';
 export class UsersService {
   private users: User[] = [];
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  create(createUserDto: CreateUserDto): User {
     const user: User = {
       id: Date.now().toString(),
       ...createUserDto,
@@ -19,11 +19,11 @@ export class UsersService {
     return user;
   }
 
-  async findAll(): Promise<User[]> {
+  findAll(): User[] {
     return this.users;
   }
 
-  async findOne(id: string): Promise<User> {
+  findOne(id: string): User {
     const user = this.users.find((u) => u.id === id);
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
@@ -31,13 +31,13 @@ export class UsersService {
     return user;
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.findOne(id);
+  update(id: string, updateUserDto: UpdateUserDto): User {
+    const user = this.findOne(id);
     Object.assign(user, { ...updateUserDto, updatedAt: new Date() });
     return user;
   }
 
-  async remove(id: string): Promise<void> {
+  remove(id: string): void {
     const index = this.users.findIndex((u) => u.id === id);
     if (index === -1) {
       throw new NotFoundException(`User with ID ${id} not found`);

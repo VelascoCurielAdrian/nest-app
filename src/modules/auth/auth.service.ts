@@ -3,7 +3,7 @@ import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
-  async login(loginDto: LoginDto) {
+  login(loginDto: LoginDto) {
     // TODO: Implementar lógica de autenticación
     return {
       access_token: 'token-placeholder',
@@ -13,7 +13,8 @@ export class AuthService {
     };
   }
 
-  async validateUser(email: string, password: string) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  validateUser(_email: string, _password: string) {
     // TODO: Implementar validación de usuario
     return null;
   }
