@@ -23,6 +23,10 @@ export class UsersService {
     return this.users;
   }
 
+  findByEmail(email: string): User | undefined {
+    return this.users.find((u) => u.email === email);
+  }
+
   findOne(id: string): User {
     const user = this.users.find((u) => u.id === id);
     if (!user) {

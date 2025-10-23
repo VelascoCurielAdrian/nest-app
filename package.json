@@ -9,10 +9,10 @@
   "scripts": {
     "build": "npm run lint:check && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "npm run lint:check && nest start",
-    "start:dev": "npm run lint:check && nest start --watch",
-    "start:debug": "npm run lint:check && nest start --debug --watch",
-    "start:prod": "npm run lint:check && npm run build && node dist/main",
+    "start": "npm run lint:check && NODE_OPTIONS='-r tsconfig-paths/register' nest start",
+    "start:dev": "npm run lint:check && NODE_OPTIONS='-r tsconfig-paths/register' nest start --watch",
+    "start:debug": "npm run lint:check && NODE_OPTIONS='-r tsconfig-paths/register' nest start --debug --watch",
+    "start:prod": "npm run lint:check && npm run build && node -r tsconfig-paths/register dist/main",
     "start:safe": "./scripts/validate-and-run.sh",
     "start:safe:dev": "./scripts/validate-and-run.sh dev",
     "start:safe:debug": "./scripts/validate-and-run.sh debug",
@@ -36,12 +36,16 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@fastify/cookie": "^11.0.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
+    "@nestjs/jwt": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/platform-fastify": "^11.1.7",
+    "bcryptjs": "^3.0.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
+    "jsonwebtoken": "^9.0.2",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
@@ -59,6 +63,7 @@
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
+    "fastify": "^5.6.1",
     "globals": "^16.0.0",
     "jest": "^30.0.0",
     "prettier": "^3.4.2",
@@ -81,6 +86,12 @@
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "moduleNameMapper": {
+      "^@app/(.*)": "<rootDir>/$1",
+      "^@common/(.*)": "<rootDir>/common/$1",
+      "^@modules/(.*)": "<rootDir>/modules/$1",
+      "^@config/(.*)": "<rootDir>/../config/$1"
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"
