@@ -46,8 +46,11 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "jsonwebtoken": "^9.0.2",
+    "nest-winston": "^1.10.2",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "winston": "^3.18.3",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -55,6 +58,7 @@
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
+    "@types/eslint": "^9.6.1",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.10.7",
@@ -62,7 +66,12 @@
     "chokidar": "^4.0.3",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.2.2",
+    "eslint-plugin-promise": "^7.2.1",
+    "eslint-plugin-sonarjs": "^3.0.5",
+    "eslint-plugin-unicorn": "^61.0.2",
     "fastify": "^5.6.1",
     "globals": "^16.0.0",
     "jest": "^30.0.0",

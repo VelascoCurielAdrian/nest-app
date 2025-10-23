@@ -2,13 +2,14 @@ import {
   Injectable,
   UnauthorizedException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcryptjs';
-import { LoginDto } from './dto/login.dto';
 
-import { UsersService } from '../users/users.service';
+import { LoginDto } from './dto/login.dto';
 import { User } from '../users/entities/user.entity';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
@@ -17,7 +18,10 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async login(loginDto: LoginDto) {
+  async login(loginDto: LoginDto | undefined) {
+    if (!loginDto) {
+      throw new BadRequestException('Request body is required');
+    }
     const { email, password, isMobile } = loginDto;
 
     // Buscar usuario por email
