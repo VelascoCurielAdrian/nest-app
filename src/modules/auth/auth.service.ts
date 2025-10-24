@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  UnauthorizedException,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcryptjs';
 
@@ -15,14 +10,14 @@ import { UsersService } from '../users/users.service';
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
-    private readonly jwtService: JwtService,
+    private readonly jwtService: JwtService
   ) {}
 
   async login(loginDto: LoginDto | undefined) {
     if (!loginDto) {
       throw new BadRequestException('Request body is required');
     }
-    const { username, password, isMobile } = loginDto;
+    const { username, password } = loginDto;
 
     // Buscar usuario por username
     const user: User | null = await this.usersService.findByUsername(username);
@@ -40,11 +35,8 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const hashed =
-      typeof user.password === 'string' && user.password.startsWith('$2');
-    const isValid = hashed
-      ? await bcrypt.compare(password, user.password)
-      : user.password === password;
+    const hashed = typeof user.password === 'string' && user.password.startsWith('$2');
+    const isValid = hashed ? await bcrypt.compare(password, user.password) : user.password === password;
 
     if (!isValid) {
       throw new UnauthorizedException('Invalid credentials');
@@ -57,20 +49,12 @@ export class AuthService {
     // Simular permisos/perfil (adaptar a tu dominio real)
     const permissions = { sale: [1, 2, 3] } as Record<string, number[]>;
 
-    if (isMobile) {
-      const salePerms = permissions.sale || [];
-      if (!salePerms.includes(1)) {
-        throw new UnauthorizedException(
-          'Profile permissions not allowed for mobile',
-        );
-      }
-    }
-
     return {
       access_token,
       user: {
         id: user.id,
         username: user.username,
+        status: user.status,
       },
       permissions,
     };

@@ -22,8 +22,7 @@ import { UsersModule } from './modules/users/users.module';
     // Configuración de base de datos con TypeORM
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) =>
-        getTypeOrmConfig(configService),
+      useFactory: (configService: ConfigService) => getTypeOrmConfig(configService),
       inject: [ConfigService],
     }),
     // Logger

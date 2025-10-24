@@ -11,20 +11,13 @@ const consoleFormat = combine(
   errors({ stack: true }),
   printf(({ level, message, timestamp, context, stack }: any) => {
     const ctx = context ? ` [${String(context)}]` : '';
-    const msg = stack
-      ? `${String(message)}\n${String(stack)}`
-      : String(message);
+    const msg = stack ? `${String(message)}\n${String(stack)}` : String(message);
     return `${String(timestamp)} ${String(level)}${ctx}: ${msg}`;
-  }),
+  })
 );
 
 // Formato JSON para archivos
-const fileFormat = combine(
-  timestamp(),
-  splat(),
-  errors({ stack: true }),
-  json(),
-);
+const fileFormat = combine(timestamp(), splat(), errors({ stack: true }), json());
 
 export function buildTransports() {
   const isDev = process.env.NODE_ENV !== 'production';

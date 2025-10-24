@@ -10,7 +10,7 @@ import unicorn from 'eslint-plugin-unicorn';
 
 export default tseslint.config(
   {
-    ignores: ['eslint.config.mjs', 'dist/**', 'coverage/**', 'node_modules/**'],
+    ignores: ['eslint.config.mjs', 'dist/**', 'coverage/**', 'node_modules/**']
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
@@ -19,16 +19,16 @@ export default tseslint.config(
     languageOptions: {
       globals: {
         ...globals.node,
-        ...globals.jest,
+        ...globals.jest
       },
       sourceType: 'commonjs',
       parserOptions: {
         // Use the project tsconfig so path aliases are understood by the type checker
         project: ['./tsconfig.json'],
         tsconfigRootDir: import.meta.dirname,
-        ecmaVersion: 'latest',
-      },
-    },
+        ecmaVersion: 'latest'
+      }
+    }
   },
   {
     // Plugins y ajustes compartidos
@@ -38,16 +38,16 @@ export default tseslint.config(
       import: /** @type {any} */ (importPlugin),
       promise: /** @type {any} */ (promisePlugin),
       sonarjs: /** @type {any} */ (sonarjs),
-      unicorn: /** @type {any} */ (unicorn),
+      unicorn: /** @type {any} */ (unicorn)
     },
     settings: {
       // Resolver para que los imports con paths de TS funcionen (aliases)
       'import/resolver': {
         typescript: {
-          project: './tsconfig.json',
-        },
-      },
-    },
+          project: './tsconfig.json'
+        }
+      }
+    }
   },
   {
     rules: {
@@ -63,10 +63,7 @@ export default tseslint.config(
 
       // TypeScript
       '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
-      '@typescript-eslint/no-unused-vars': [
-        'warn',
-        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true },
-      ],
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true }],
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
@@ -75,23 +72,18 @@ export default tseslint.config(
       'import/order': [
         'error',
         {
-          groups: [
-            ['builtin', 'external'],
-            ['internal'],
-            ['parent', 'sibling', 'index'],
-            ['object', 'type'],
-          ],
+          groups: [['builtin', 'external'], ['internal'], ['parent', 'sibling', 'index'], ['object', 'type']],
           pathGroups: [
             { pattern: '@app/**', group: 'internal', position: 'before' },
             { pattern: '@common/**', group: 'internal', position: 'before' },
             { pattern: '@modules/**', group: 'internal', position: 'before' },
-            { pattern: '@config/**', group: 'internal', position: 'before' },
+            { pattern: '@config/**', group: 'internal', position: 'before' }
           ],
           pathGroupsExcludedImportTypes: ['builtin'],
           alphabetize: { order: 'asc', caseInsensitive: true },
           'newlines-between': 'always',
-          warnOnUnassignedImports: true,
-        },
+          warnOnUnassignedImports: true
+        }
       ],
       'import/newline-after-import': 'error',
       'import/no-duplicates': 'error',
@@ -111,15 +103,27 @@ export default tseslint.config(
       // Unicorn (pequeñas mejoras seguras)
       'unicorn/prefer-node-protocol': 'error',
 
-      "prettier/prettier": ["error", { endOfLine: "auto" }],
-    },
+      // Prettier: permitimos líneas más largas para que imports permanezcan en una sola línea
+      'prettier/prettier': [
+        'error',
+        {
+          endOfLine: 'auto',
+          printWidth: 160,
+          trailingComma: 'es5', // Permite trailing commas (mejor práctica)
+          singleQuote: true,
+          semi: true,
+          tabWidth: 2,
+          useTabs: false
+        }
+      ]
+    }
   },
   {
     // Ajustes para tests
     files: ['test/**/*.ts', '**/*.spec.ts', '**/*.e2e-spec.ts'],
     rules: {
       'no-console': 'off',
-      '@typescript-eslint/no-explicit-any': 'off',
-    },
-  },
+      '@typescript-eslint/no-explicit-any': 'off'
+    }
+  }
 );

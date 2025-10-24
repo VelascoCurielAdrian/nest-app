@@ -1,9 +1,4 @@
-import {
-  PipeTransform,
-  Injectable,
-  ArgumentMetadata,
-  BadRequestException,
-} from '@nestjs/common';
+import { PipeTransform, Injectable, ArgumentMetadata, BadRequestException } from '@nestjs/common';
 import { plainToInstance, ClassConstructor } from 'class-transformer';
 import { validate, ValidationError } from 'class-validator';
 
@@ -38,9 +33,7 @@ export class ValidationPipe implements PipeTransform<any> {
           formattedErrors[`${error.property}.${key}`] = nestedErrors[key];
         });
       } else {
-        formattedErrors[error.property] = [
-          `Validación fallida para ${error.property}`,
-        ];
+        formattedErrors[error.property] = [`Validación fallida para ${error.property}`];
       }
     });
 
@@ -48,13 +41,7 @@ export class ValidationPipe implements PipeTransform<any> {
   }
 
   private toValidate(metatype: ClassConstructor<any> | undefined): boolean {
-    const types: Array<ClassConstructor<any>> = [
-      String,
-      Boolean,
-      Number,
-      Array,
-      Object,
-    ];
+    const types: Array<ClassConstructor<any>> = [String, Boolean, Number, Array, Object];
     return metatype ? !types.includes(metatype) : false;
   }
 }

@@ -12,9 +12,7 @@ import { UsersModule } from '../users/users.module';
       global: true,
       secret: process.env.JWT_SECRET || 'your-secret-key',
       signOptions: {
-        expiresIn: process.env.JWT_EXPIRES_IN
-          ? Number(process.env.JWT_EXPIRES_IN)
-          : 60 * 60 * 24 * 140,
+        expiresIn: process.env.JWT_EXPIRES_IN ? Number(process.env.JWT_EXPIRES_IN) : 60 * 60 * 24 * 140,
       },
     }),
   ],

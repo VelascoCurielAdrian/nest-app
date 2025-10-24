@@ -1,10 +1,4 @@
-import {
-  ArgumentsHost,
-  Catch,
-  ExceptionFilter,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 
 import type { LoggerService } from '@nestjs/common';
@@ -35,8 +29,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const path = request.url;
     const method = request.method;
 
-    const { statusCode, error, message, errors } =
-      this.getHttpErrorParts(exception);
+    const { statusCode, error, message, errors } = this.getHttpErrorParts(exception);
 
     const body: ErrorBody = {
       id,
@@ -53,17 +46,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     // Log estructurado
-    this.logger.error(
-      `${method} ${path} -> ${statusCode} [${id}] ${this.stringifyMsg(message)}`,
-      (exception as Error)?.stack,
-      'AllExceptionsFilter',
-    );
+    this.logger.error(`${method} ${path} -> ${statusCode} [${id}] ${this.stringifyMsg(message)}`, (exception as Error)?.stack, 'AllExceptionsFilter');
 
-    reply
-      .status(statusCode)
-      .header('x-request-id', id)
-      .type('application/json')
-      .send(body);
+    reply.status(statusCode).header('x-request-id', id).type('application/json').send(body);
   }
 
   private getRequestId(req: FastifyRequest): string {

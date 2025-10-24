@@ -1,20 +1,7 @@
 //
-import {
-  Controller,
-  Post,
-  Body,
-  HttpCode,
-  HttpStatus,
-  Res,
-  Get,
-  Req,
-} from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, Res, Get, Req } from '@nestjs/common';
 
-import {
-  setAuthCookie,
-  clearAuthCookie,
-  getCookie,
-} from '@common/utils/cookies';
+import { setAuthCookie, clearAuthCookie, getCookie } from '@common/utils/cookies';
 
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -28,10 +15,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(
-    @Body() loginDto: LoginDto,
-    @Res({ passthrough: true }) res: FastifyReply,
-  ) {
+  async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: FastifyReply) {
     const result = await this.authService.login(loginDto);
 
     const { access_token, ...userData } = result;
