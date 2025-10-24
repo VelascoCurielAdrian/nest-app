@@ -45,7 +45,6 @@ export class AuthService {
     // Construir payload y firmar token
     const payload = { sub: user.id, username: user.username };
     const access_token = await this.jwtService.signAsync(payload);
-
     // Simular permisos/perfil (adaptar a tu dominio real)
     const permissions = { sale: [1, 2, 3] } as Record<string, number[]>;
 
@@ -62,10 +61,7 @@ export class AuthService {
 
   async verifyToken(token: string): Promise<{ sub: string; username: string }> {
     try {
-      return await this.jwtService.verifyAsync<{
-        sub: string;
-        username: string;
-      }>(token);
+      return await this.jwtService.verifyAsync<{ sub: string; username: string }>(token);
     } catch {
       throw new UnauthorizedException('Invalid session');
     }

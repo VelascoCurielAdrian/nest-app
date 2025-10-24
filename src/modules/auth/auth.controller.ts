@@ -7,7 +7,6 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 
 import type { FastifyReply, FastifyRequest } from 'fastify';
-// Tipos de Fastify ahora se importan como type imports para cumplir ESLint
 
 @Controller('auth')
 export class AuthController {
