@@ -76,9 +76,9 @@ export class AuthService {
     };
   }
 
-  async verifyToken(token: string): Promise<{ sub: string; username: string }> {
+  async verifyToken(token: string): Promise<{ sub: string; username: string; iat: number; exp: number }> {
     try {
-      return await this.jwtService.verifyAsync<{ sub: string; username: string }>(token);
+      return await this.jwtService.verifyAsync<{ sub: string; username: string; iat: number; exp: number }>(token);
     } catch {
       throw new UnauthorizedException('Invalid session');
     }

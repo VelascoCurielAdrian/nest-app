@@ -201,8 +201,6 @@ export class UsersService {
         where: { id: profile_id },
       });
 
-      console.warn('Profile found for permissions:', profile);
-
       if (!profile) {
         return {};
       }
