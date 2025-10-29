@@ -9,6 +9,7 @@ import { winstonOptions } from './common/logger/winston.config';
 import configuration from './config/configuration';
 import { getTypeOrmConfig } from './config/typeorm.config';
 import { AuthModule } from './modules/auth/auth.module';
+import { ProductsModule } from './modules/products/products.module';
 import { UsersModule } from './modules/users/users.module';
 
 @Module({
@@ -30,6 +31,7 @@ import { UsersModule } from './modules/users/users.module';
     // Módulos de la aplicación
     UsersModule,
     AuthModule,
+    ProductsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
