@@ -45,17 +45,34 @@ export class AuthService {
     // Construir payload y firmar token
     const payload = { sub: user.id, username: user.username };
     const access_token = await this.jwtService.signAsync(payload);
-    // Simular permisos/perfil (adaptar a tu dominio real)
-    const permissions = { sale: [1, 2, 3] } as Record<string, number[]>;
+    // Obtener datos completos del usuario con perfil y permisos
+    const userWithProfile = await this.usersService.getUserWithProfileAndPermissions(user.id);
 
+    if (userWithProfile) {
+      return {
+        access_token,
+        user: userWithProfile,
+      };
+    }
+
+    // Fallback si no tiene perfil
     return {
       access_token,
       user: {
-        id: user.id,
+        user_id: user.id,
         username: user.username,
         status: user.status,
+        id: '',
+        profile_id: null,
+        first_name: '',
+        email: '',
+        last_name: '',
+        gender: null,
+        local_number: null,
+        phone_number: null,
+        avatar_url: null,
+        permissions: {},
       },
-      permissions,
     };
   }
 

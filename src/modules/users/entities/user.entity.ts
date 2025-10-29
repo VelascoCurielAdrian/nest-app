@@ -1,4 +1,6 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+
+import { UserProfile } from './user-profile.entity';
 
 @Entity('users')
 export class User {
@@ -19,4 +21,8 @@ export class User {
 
   @UpdateDateColumn({ name: 'updated_at', nullable: true })
   updated_at: Date | null;
+
+  // Relación con UserProfile
+  @OneToOne(() => UserProfile, (userProfile) => userProfile.user)
+  userProfile: UserProfile;
 }

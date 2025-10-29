@@ -34,6 +34,6 @@ async function bootstrap() {
   const logger = app.get<LoggerService>(WINSTON_MODULE_NEST_PROVIDER);
   app.useGlobalFilters(new AllExceptionsFilter(logger));
 
-  await app.listen(3000, '0.0.0.0');
+  await app.listen(4001, '0.0.0.0');
 }
 void bootstrap();
