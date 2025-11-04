@@ -62,16 +62,6 @@ export class AuthService {
         user_id: user.id,
         username: user.username,
         status: user.status,
-        id: '',
-        profile_id: null,
-        first_name: '',
-        email: '',
-        last_name: '',
-        gender: null,
-        local_number: null,
-        phone_number: null,
-        avatar_url: null,
-        permissions: {},
       },
     };
   }

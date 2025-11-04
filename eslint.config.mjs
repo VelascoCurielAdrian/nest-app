@@ -52,7 +52,7 @@ export default tseslint.config(
   {
     rules: {
       // Buenas prácticas generales
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
       eqeqeq: 'error',
       curly: ['error', 'all'],
       'prefer-const': 'error',
