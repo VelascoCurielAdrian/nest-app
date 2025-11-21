@@ -37,7 +37,8 @@
     "generate:module": "./scripts/generate-module.sh",
     "generate:quick": "./scripts/quick-module.sh",
     "g:module": "./scripts/generate-module.sh",
-    "g:quick": "./scripts/quick-module.sh"
+    "g:quick": "./scripts/quick-module.sh",
+    "seed": "ts-node -r tsconfig-paths/register src/database/seed.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
