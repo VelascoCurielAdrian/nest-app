@@ -6,6 +6,7 @@ import { LoginDto } from './dto/login.dto';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 
+// Servicio para manejar la autenticación
 @Injectable()
 export class AuthService {
   constructor(

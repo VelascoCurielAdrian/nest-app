@@ -9,4 +9,6 @@ import { IS_PUBLIC_KEY } from '../guards/auth.guard';
  * @Get('public-route')
  * publicMethod() { ... }
  */
+
+// Decorador para marcar rutas como públicas (sin autenticación requerida)
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);

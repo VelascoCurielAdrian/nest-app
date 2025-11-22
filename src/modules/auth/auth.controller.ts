@@ -9,10 +9,12 @@ import { LoginDto } from './dto/login.dto';
 
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
+// Controlador para manejar la autenticación
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  // Endpoint para el inicio de sesión
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -26,6 +28,8 @@ export class AuthController {
     return userData;
   }
 
+  // Endpoint para el cierre de sesión
+  @Public()
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   logout(@Res({ passthrough: true }) res: FastifyReply) {
@@ -33,6 +37,7 @@ export class AuthController {
     return { message: 'User has been logged out successfully' };
   }
 
+  // Endpoint para verificar la sesión
   @Public()
   @Get('verify')
   @HttpCode(HttpStatus.OK)
@@ -45,6 +50,7 @@ export class AuthController {
     return { session: payload };
   }
 
+  // Endpoint para depurar el token
   @Public()
   @Get('debug-token')
   @HttpCode(HttpStatus.OK)

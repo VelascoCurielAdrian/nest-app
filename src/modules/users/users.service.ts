@@ -12,6 +12,7 @@ import { SessionData, UserWithProfile } from './interfaces/session.interface';
 @Injectable()
 export class UsersService {
   constructor(
+    // Repositorios inyectados para las entidades User, UserProfile y Profile
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(UserProfile)

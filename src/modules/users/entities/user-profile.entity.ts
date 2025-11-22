@@ -2,6 +2,7 @@ import { Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGenerate
 
 import { User } from './user.entity';
 
+// Una entidad que representa el perfil de un usuario en el sistema
 @Entity('user_profile')
 export class UserProfile {
   @PrimaryGeneratedColumn('uuid')

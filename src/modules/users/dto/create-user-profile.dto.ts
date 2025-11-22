@@ -1,5 +1,6 @@
 import { IsEmail, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
+// DTO para crear un perfil de usuario
 export class CreateUserProfileDto {
   @IsUUID()
   user_id: string;

@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 
 import type { TestingModule } from '@nestjs/testing';
 
+// Pruebas unitarias para AppController
 describe('AppController', () => {
   let appController: AppController;
 

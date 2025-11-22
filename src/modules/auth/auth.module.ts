@@ -8,6 +8,7 @@ import { SessionInterceptor } from './interceptors/session.interceptor';
 import { JwtValidationService } from './services/jwt-validation.service';
 import { UsersModule } from '../users/users.module';
 
+// Módulo de autenticación
 @Module({
   imports: [
     UsersModule,

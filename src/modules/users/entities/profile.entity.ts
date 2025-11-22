@@ -1,5 +1,6 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
+// Una entidad que representa un perfil en el sistema
 @Entity('profile')
 export class Profile {
   @PrimaryGeneratedColumn('uuid')

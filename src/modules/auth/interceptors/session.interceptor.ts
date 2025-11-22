@@ -8,6 +8,7 @@ import { AuthService } from '../auth.service';
 
 import type { FastifyRequest, FastifyReply } from 'fastify';
 
+// Interceptor para manejar la sesión del usuario
 @Injectable()
 export class SessionInterceptor implements NestInterceptor {
   constructor(private readonly authService: AuthService) {}
@@ -32,6 +33,7 @@ export class SessionInterceptor implements NestInterceptor {
     return next.handle();
   }
 
+  // Validar y renovar el token de sesión
   private async validateAndRenewToken(token: string, response: FastifyReply): Promise<void> {
     try {
       await this.authService.verifyToken(token);

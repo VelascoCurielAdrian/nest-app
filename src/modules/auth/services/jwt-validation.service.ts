@@ -7,6 +7,7 @@ export class JwtValidationService {
 
   constructor(private readonly jwtService: JwtService) {}
 
+  // Servicio para validar tokens JWT
   async verifyToken(token: string): Promise<{ sub: string; username: string; iat: number; exp: number }> {
     try {
       const payload = await this.jwtService.verifyAsync<{ sub: string; username: string; iat: number; exp: number }>(token);

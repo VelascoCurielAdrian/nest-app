@@ -9,10 +9,12 @@ import type { FastifyRequest } from 'fastify';
 
 export const IS_PUBLIC_KEY = 'isPublic';
 
+// Guard para proteger rutas que requieren autenticación
 interface AuthenticatedRequest extends FastifyRequest {
   user?: { sub: string; username: string; iat: number; exp: number };
 }
 
+// Guard para proteger rutas que requieren autenticación
 @Injectable()
 export class AuthGuard implements CanActivate {
   private readonly logger = new Logger(AuthGuard.name);
@@ -22,6 +24,7 @@ export class AuthGuard implements CanActivate {
     private readonly reflector: Reflector
   ) {}
 
+  // Guard para proteger rutas que requieren autenticación
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // Verificar si la ruta está marcada como pública
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [context.getHandler(), context.getClass()]);

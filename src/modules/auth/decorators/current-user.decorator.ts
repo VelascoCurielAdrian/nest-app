@@ -15,6 +15,7 @@ interface AuthenticatedRequest extends FastifyRequest {
  *   return user;
  * }
  */
+// Decorador para extraer el usuario autenticado de la request
 export const CurrentUser = createParamDecorator((data: unknown, ctx: ExecutionContext) => {
   const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
   return request.user;

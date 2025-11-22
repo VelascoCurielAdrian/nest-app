@@ -1,5 +1,6 @@
 import { IsEmail, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 
+// DTO para actualizar un perfil de usuario
 export class UpdateUserProfileDto {
   @IsOptional()
   @IsUUID()

@@ -4,6 +4,7 @@ import { getCookie } from '@common/utils/cookies';
 
 import type { FastifyRequest, FastifyReply } from 'fastify';
 
+// Middleware para registrar las solicitudes de autenticación
 @Injectable()
 export class AuthLoggingMiddleware implements NestMiddleware {
   private readonly logger = new Logger(AuthLoggingMiddleware.name);
