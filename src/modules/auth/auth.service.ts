@@ -23,24 +23,24 @@ export class AuthService {
     // Buscar usuario por username
     const user: User | null = await this.usersService.findByUsername(username);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Usuario no encontrado');
     }
 
     // Validar que el usuario esté activo
     if (!user.status) {
-      throw new UnauthorizedException('User is inactive');
+      throw new UnauthorizedException('Usuario inactivo');
     }
 
     // Validar contraseña (soporta hash bcrypt o texto plano en dev)
     if (!user.password) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Usuario no tiene contraseña establecida');
     }
 
     const hashed = typeof user.password === 'string' && user.password.startsWith('$2');
     const isValid = hashed ? await bcrypt.compare(password, user.password) : user.password === password;
 
     if (!isValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Contraseña incorrecta');
     }
 
     // Construir payload y firmar token
