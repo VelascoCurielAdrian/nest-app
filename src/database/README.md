@@ -16,25 +16,50 @@ o con pnpm:
 pnpm seed
 ```
 
-## Seed: Master User
+## Seeds Disponibles
 
-El seed `master-user.seed.ts` crea:
+### 1. Master User (`master-user.seed.ts`)
 
-### 1. Perfil Master
-- **Nombre**: Master
-- **Descripción**: Perfil master con todos los permisos
-- **Estado**: Activo
+Crea el usuario administrador principal:
 
-### 2. Usuario Master
-- **Username**: `master`
-- **Password**: `321`
-- **Estado**: Activo
+- **Perfil Master**
+  - Nombre: Master
+  - Descripción: Perfil master con todos los permisos
+  - Estado: Activo
 
-### 3. User Profile
-- **Email**: adrian_velascocuriel@hotmail.com
-- **Nombre**: Adrian Velasco Curiel
-- **Género**: male
-- **Teléfono**: +52 6672466130
+- **Usuario Master**
+  - Username: `master`
+  - Password: `321`
+  - Estado: Activo
+
+- **User Profile**
+  - Email: adrian_velascocuriel@hotmail.com
+  - Nombre: Adrian Velasco Curiel
+  - Género: male
+  - Teléfono: +52 6672466130
+
+### 2. Permissions System (`permissions-system.seed.ts`)
+
+Crea el sistema completo de permisos:
+
+- **4 Tipos de Permisos**
+  - `read` - Lectura
+  - `write` - Escritura
+  - `delete` - Eliminación
+  - `export` - Exportar
+
+- **5 Secciones del Sistema**
+  - `users` - Gestión de usuarios
+  - `products` - Gestión de productos
+  - `sales` - Gestión de ventas
+  - `reports` - Visualización de reportes
+  - `settings` - Configuración del sistema
+
+- **20 Relaciones Sección-Permiso** (todas las combinaciones posibles)
+
+- **Asignación Completa** de todos los permisos al perfil Master
+
+Para más información sobre el sistema de permisos, ver [`/documents/PERMISSIONS-SYSTEM.md`](../../documents/PERMISSIONS-SYSTEM.md)
 
 ## Notas Importantes
 

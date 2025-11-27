@@ -4,7 +4,11 @@ import { Repository } from 'typeorm';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { PermissionSystem } from './entities/permission-system.entity';
 import { Profile } from './entities/profile.entity';
+import { SectionPermission } from './entities/section-permission.entity';
+import { SystemSection } from './entities/system-section.entity';
+import { TypePermission } from './entities/type-permission.entity';
 import { UserProfile } from './entities/user-profile.entity';
 import { User } from './entities/user.entity';
 import { SessionData, UserWithProfile } from './interfaces/session.interface';
@@ -18,7 +22,16 @@ export class UsersService {
     @InjectRepository(UserProfile)
     private readonly userProfileRepository: Repository<UserProfile>,
     @InjectRepository(Profile)
-    private readonly profileRepository: Repository<Profile>
+    private readonly profileRepository: Repository<Profile>,
+    // Repositorios para el sistema de permisos
+    @InjectRepository(PermissionSystem)
+    private readonly permissionSystemRepository: Repository<PermissionSystem>,
+    @InjectRepository(SectionPermission)
+    private readonly sectionPermissionRepository: Repository<SectionPermission>,
+    @InjectRepository(SystemSection)
+    private readonly systemSectionRepository: Repository<SystemSection>,
+    @InjectRepository(TypePermission)
+    private readonly typePermissionRepository: Repository<TypePermission>
   ) {}
 
   /**
@@ -195,25 +208,36 @@ export class UsersService {
 
   /**
    * Obtiene los permisos para un perfil específico
+   * Replica la consulta de Knex usando TypeORM QueryBuilder
+   * Retorna un objeto con las secciones como keys y arrays de IDs de permisos como values
    */
-  private async getPermissionsForProfile(profile_id: string): Promise<Record<string, any>> {
+  private async getPermissionsForProfile(profile_id: string): Promise<Record<string, number[]>> {
     try {
-      const profile = await this.profileRepository.findOne({
-        where: { id: profile_id },
-      });
+      const permissions = await this.permissionSystemRepository
+        .createQueryBuilder('permission_system')
+        .select('system_section.id', 'id')
+        .addSelect('system_section.key', 'key')
+        .addSelect(`json_agg(type_permission.id ORDER BY type_permission.id ASC)`, 'permissions')
+        .innerJoin('section_permission', 'section_permission', 'permission_system.section_permission_id = section_permission.id')
+        .innerJoin('system_section', 'system_section', 'section_permission.section_id = system_section.id')
+        .innerJoin('type_permission', 'type_permission', 'section_permission.permission_id = type_permission.id')
+        .where('permission_system.profile_id = :profile_id', { profile_id })
+        .andWhere('permission_system.status = :status', { status: true })
+        .andWhere('type_permission.status = :status', { status: true })
+        .andWhere('section_permission.status = :status', { status: true })
+        .groupBy('system_section.id')
+        .addGroupBy('system_section.key')
+        .orderBy('system_section.id', 'ASC')
+        .getRawMany<{ id: number; key: string; permissions: number[] }>();
 
-      if (!profile) {
-        return {};
-      }
-
-      // Implementación básica - personalizar según tu sistema de permisos
-      return {
-        [profile.name]: {
-          read: true,
-          write: profile.status,
-          delete: profile.status,
+      // Reducir el array a un objeto con las keys de las secciones
+      return permissions.reduce(
+        (acc, section) => {
+          acc[section.key] = section.permissions;
+          return acc;
         },
-      };
+        {} as Record<string, number[]>
+      );
     } catch (error) {
       console.error('Error getting permissions for profile:', error);
       return {};
