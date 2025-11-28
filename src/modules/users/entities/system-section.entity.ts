@@ -17,6 +17,9 @@ export class SystemSection {
   @Column({ type: 'boolean', default: true })
   status: boolean;
 
+  @Column({ name: 'created_by', type: 'uuid' })
+  created_by: string;
+
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;
 

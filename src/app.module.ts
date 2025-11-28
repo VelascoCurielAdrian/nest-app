@@ -6,6 +6,7 @@ import { WinstonModule } from 'nest-winston';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { winstonOptions } from './common/logger/winston.config';
 import configuration from './config/configuration';
 import { getTypeOrmConfig } from './config/typeorm.config';
@@ -43,6 +44,11 @@ import { UsersModule } from './modules/users/users.module';
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
+    },
+    // Interceptor global para transformación de respuestas
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransformInterceptor,
     },
     // Interceptor global para manejo de sesiones
     {
