@@ -14,6 +14,9 @@ export class SectionPermission {
   @Column({ name: 'permission_id', type: 'int' })
   permission_id: number;
 
+  @Column({ name: 'inherit_from_parent', type: 'boolean', default: true })
+  inherit_from_parent: boolean;
+
   @Column({ type: 'boolean', default: true })
   status: boolean;
 

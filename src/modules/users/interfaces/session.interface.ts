@@ -1,3 +1,11 @@
+export interface PermissionNode {
+  id: number;
+  key: string;
+  name: string;
+  permissions: number[];
+  children?: PermissionNode[];
+}
+
 export interface SessionData {
   user_id: string;
   username: string;
@@ -11,7 +19,7 @@ export interface SessionData {
   local_number: string | null;
   phone_number: string | null;
   avatar_url: string | null;
-  permissions: Record<string, any>;
+  permissions: PermissionNode[];
 }
 
 export interface UserWithProfile {

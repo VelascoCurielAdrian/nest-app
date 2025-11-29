@@ -31,79 +31,155 @@ async function seedSectionsSystem() {
         throw new Error("El perfil 'Master' no fue encontrado.");
       }
 
-      // Insertar tipos de permisos
-      await manager
-        .createQueryBuilder()
-        .insert()
-        .into(TypePermission)
-        .values([
-          { id: 1, key: 'create', name: 'Create', description: 'Permission to create resources', created_by: user.id },
-          { id: 2, key: 'delete', name: 'Delete', description: 'Permission to delete resources', created_by: user.id },
-          { id: 3, key: 'view', name: 'View', description: 'Permission to view resources', created_by: user.id },
-        ])
-        .execute();
+      // Crear tipos de permisos usando entidades
+      const permissionsData = [
+        { key: 'create', name: 'Create', description: 'Permission to create resources' },
+        { key: 'delete', name: 'Delete', description: 'Permission to delete resources' },
+        { key: 'view', name: 'View', description: 'Permission to view resources' },
+        { key: 'edit', name: 'Edit', description: 'Permission to edit resources' },
+        { key: 'list', name: 'List', description: 'Permission to list resources' },
+        { key: 'export', name: 'Export', description: 'Permission to export resources' },
+        { key: 'import', name: 'Import', description: 'Permission to import resources' },
+        { key: 'approve', name: 'Approve', description: 'Permission to approve resources' },
+        { key: 'reject', name: 'Reject', description: 'Permission to reject resources' },
+        { key: 'archive', name: 'Archive', description: 'Permission to archive resources' },
+        { key: 'restore', name: 'Restore', description: 'Permission to restore resources' },
+      ];
 
-      const permissions = await manager.find(TypePermission);
+      const permissions: TypePermission[] = [];
+      for (const permData of permissionsData) {
+        const permission = manager.create(TypePermission, {
+          ...permData,
+          status: true,
+          created_by: user.id,
+        });
+        const savedPermission = await manager.save(TypePermission, permission);
+        permissions.push(savedPermission);
+      }
 
-      // Insertar secciones del sistema
-      await manager
-        .createQueryBuilder()
-        .insert()
-        .into(SystemSection)
-        .values([
-          // Configuración de Sistema y Usuarios
-          { id: 1, key: 'users', name: 'Usuarios', status: true, created_by: user.id },
-          { id: 2, key: 'profiles', name: 'Perfiles', status: true, created_by: user.id },
+      console.info(`✅ ${permissions.length} tipos de permisos creados`);
 
-          // Catálogo e Inventario
-          { id: 3, key: 'products', name: 'Productos', status: true, created_by: user.id },
-          { id: 4, key: 'subproducts', name: 'Productos Variantes', status: true, created_by: user.id },
-          { id: 5, key: 'seller-product-prices', name: 'Tarifas y Precios', status: true, created_by: user.id },
+      // Crear secciones del sistema usando entidades
+      const sectionsData = [
+        { key: 'users', name: 'Usuarios', description: 'Gestión de usuarios del sistema', parent_id: null },
+        { key: 'profiles', name: 'Perfiles', description: 'Gestión de perfiles de usuario', parent_id: null },
+        { key: 'products', name: 'Productos', description: 'Gestión de productos', parent_id: null },
+        { key: 'sales', name: 'Ventas', description: 'Gestión de ventas', parent_id: null },
+        { key: 'reports', name: 'Reportes', description: 'Generación de reportes', parent_id: null },
+        { key: 'settings', name: 'Configuración', description: 'Configuración del sistema', parent_id: null },
+      ];
 
-          // Operaciones de Venta
-          { id: 6, key: 'sellers', name: 'Vendedores', status: true, created_by: user.id },
-          { id: 7, key: 'sale', name: 'Venta', status: true, created_by: user.id },
-          { id: 8, key: 'saleDetails', name: 'Detalle Ventas', status: true, created_by: user.id },
-          { id: 9, key: 'orders', name: 'Ordenes', status: true, created_by: user.id },
+      const sections: SystemSection[] = [];
+      for (const sectionData of sectionsData) {
+        const section = manager.create(SystemSection, {
+          ...sectionData,
+          status: true,
+          sort_order: 0,
+          created_by: user.id,
+        });
+        const savedSection = await manager.save(SystemSection, section);
+        sections.push(savedSection);
+      }
 
-          // Cierre y Contabilidad
-          { id: 10, key: 'deductions', name: 'Deducciones', status: true, created_by: user.id },
-          { id: 11, key: 'periods', name: 'Periodos', status: true, created_by: user.id },
-          { id: 12, key: 'cashCuts', name: 'Corte de caja', status: true, created_by: user.id },
+      // Crear submódulos bajo "users"
+      const usersSection = sections.find((s) => s.key === 'users');
+      if (usersSection) {
+        const submodulesData = [
+          {
+            key: 'user-management',
+            name: 'Gestión de Usuarios',
+            description: 'Administración de usuarios',
+            parent_id: usersSection.id,
+          },
+          {
+            key: 'user-reports',
+            name: 'Reportes de Usuarios',
+            description: 'Reportes relacionados con usuarios',
+            parent_id: usersSection.id,
+          },
+        ];
 
-          // Reportes y Análisis
-          { id: 13, key: 'reports', name: 'Reportes', status: true, created_by: user.id },
-        ])
-        .execute();
+        for (const submoduleData of submodulesData) {
+          const submodule = manager.create(SystemSection, {
+            ...submoduleData,
+            status: true,
+            sort_order: 0,
+            created_by: user.id,
+          });
+          const savedSubmodule = await manager.save(SystemSection, submodule);
+          sections.push(savedSubmodule);
+        }
+      }
 
-      const sections = await manager.find(SystemSection);
-
-      // Insertar permisos por sección
-      const sectionPermissionValues: { section_id: number; permission_id: number; status: boolean; created_by: string }[] = [];
-      sections.forEach((section) => {
-        permissions.forEach((permission) => {
-          sectionPermissionValues.push({
-            section_id: section.id,
+      // Crear permisos específicos por sección
+      const sectionPermissions: SectionPermission[] = [];
+      // Obtener secciones específicas
+      const userManagementSection = sections.find((s) => s.key === 'user-management');
+      const userReportsSection = sections.find((s) => s.key === 'user-reports');
+      // Permisos para user-management: create, view, edit, list, export
+      if (userManagementSection) {
+        const managementPermissionKeys = ['create', 'view', 'edit', 'list', 'export'];
+        const managementPermissions = permissions.filter((p) => managementPermissionKeys.includes(p.key));
+        for (const permission of managementPermissions) {
+          const sectionPermission = manager.create(SectionPermission, {
+            section_id: userManagementSection.id,
             permission_id: permission.id,
+            inherit_from_parent: true,
             status: true,
             created_by: user.id,
           });
+          const savedSectionPermission = await manager.save(SectionPermission, sectionPermission);
+          sectionPermissions.push(savedSectionPermission);
+        }
+      }
+
+      // Permisos para user-reports: view
+      if (userReportsSection) {
+        const viewPermission = permissions.find((p) => p.key === 'view');
+        if (viewPermission) {
+          const sectionPermission = manager.create(SectionPermission, {
+            section_id: userReportsSection.id,
+            permission_id: viewPermission.id,
+            inherit_from_parent: true,
+            status: true,
+            created_by: user.id,
+          });
+          const savedSectionPermission = await manager.save(SectionPermission, sectionPermission);
+          sectionPermissions.push(savedSectionPermission);
+        }
+      }
+      // Asignar todos los permisos a las secciones principales (no submódulos)
+      const mainSections = sections.filter((s) => s.parent_id === null);
+      for (const section of mainSections) {
+        for (const permission of permissions) {
+          const sectionPermission = manager.create(SectionPermission, {
+            section_id: section.id,
+            permission_id: permission.id,
+            inherit_from_parent: true,
+            status: true,
+            created_by: user.id,
+          });
+          const savedSectionPermission = await manager.save(SectionPermission, sectionPermission);
+          sectionPermissions.push(savedSectionPermission);
+        }
+      }
+
+      console.info(`✅ ${sectionPermissions.length} permisos de sección creados`);
+
+      // Asignar todos los permisos al perfil Master usando entidades
+      const permissionSystems: PermissionSystem[] = [];
+      for (const sectionPermission of sectionPermissions) {
+        const permissionSystem = manager.create(PermissionSystem, {
+          profile_id: profile.id,
+          section_permission_id: sectionPermission.id,
+          status: true,
+          created_by: user.id,
         });
-      });
+        const savedPermissionSystem = await manager.save(PermissionSystem, permissionSystem);
+        permissionSystems.push(savedPermissionSystem);
+      }
 
-      await manager.createQueryBuilder().insert().into(SectionPermission).values(sectionPermissionValues).execute();
-
-      const insertedSectionPermissions = await manager.find(SectionPermission);
-
-      // Asignar todos los permisos al perfil Master
-      const permissionSystemValues = insertedSectionPermissions.map((sp) => ({
-        profile_id: profile.id,
-        section_permission_id: sp.id,
-        status: true,
-        created_by: user.id,
-      }));
-
-      await manager.createQueryBuilder().insert().into(PermissionSystem).values(permissionSystemValues).execute();
+      console.info(`✅ ${permissionSystems.length} permisos asignados al perfil Master`);
 
       console.info('✅ Secciones y permisos del sistema insertados correctamente.');
     } catch (error) {

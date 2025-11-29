@@ -158,7 +158,7 @@ export class UsersService {
       };
 
       if (!sessionData.profile_id) {
-        return { ...sessionData, permissions: {} };
+        return { ...sessionData, permissions: [] };
       }
 
       const permissions = await this.getPermissionsForProfile(sessionData.profile_id);
@@ -207,40 +207,234 @@ export class UsersService {
   }
 
   /**
-   * Obtiene los permisos para un perfil específico
-   * Replica la consulta de Knex usando TypeORM QueryBuilder
-   * Retorna un objeto con las secciones como keys y arrays de IDs de permisos como values
+   * Obtiene los permisos para un perfil específico con soporte para herencia jerárquica
+   * Retorna una estructura jerárquica con las secciones y sus hijos
+   * Implementa la lógica de herencia basada en parent_id e inherit_from_parent
    */
-  private async getPermissionsForProfile(profile_id: string): Promise<Record<string, number[]>> {
+  private async getPermissionsForProfile(profile_id: string): Promise<any[]> {
     try {
-      const permissions = await this.permissionSystemRepository
-        .createQueryBuilder('permission_system')
-        .select('system_section.id', 'id')
-        .addSelect('system_section.key', 'key')
-        .addSelect(`json_agg(type_permission.id ORDER BY type_permission.id ASC)`, 'permissions')
-        .innerJoin('section_permission', 'section_permission', 'permission_system.section_permission_id = section_permission.id')
-        .innerJoin('system_section', 'system_section', 'section_permission.section_id = system_section.id')
-        .innerJoin('type_permission', 'type_permission', 'section_permission.permission_id = type_permission.id')
-        .where('permission_system.profile_id = :profile_id', { profile_id })
-        .andWhere('permission_system.status = :status', { status: true })
-        .andWhere('type_permission.status = :status', { status: true })
-        .andWhere('section_permission.status = :status', { status: true })
-        .groupBy('system_section.id')
-        .addGroupBy('system_section.key')
-        .orderBy('system_section.id', 'ASC')
-        .getRawMany<{ id: number; key: string; permissions: number[] }>();
+      const directPermissions = await this.fetchDirectPermissions(profile_id);
+      if (directPermissions.length === 0) {
+        return [];
+      }
 
-      // Reducir el array a un objeto con las keys de las secciones
-      return permissions.reduce(
-        (acc, section) => {
-          acc[section.key] = section.permissions;
-          return acc;
-        },
-        {} as Record<string, number[]>
-      );
+      const allSections = await this.systemSectionRepository.find({ where: { status: true }, order: { id: 'ASC' } });
+      const sectionMap = new Map<number, SystemSection>(allSections.map((s) => [s.id, s]));
+      const permissionsBySection = this.groupPermissionsBySection(directPermissions);
+      const finalPermissions = this.buildFinalPermissions(permissionsBySection, sectionMap, directPermissions, allSections);
+
+      return this.buildHierarchicalPermissions(allSections, finalPermissions);
     } catch (error) {
       console.error('Error getting permissions for profile:', error);
-      return {};
+      return [];
     }
+  }
+
+  /**
+   * Obtiene los permisos directos del perfil desde la base de datos
+   */
+  private async fetchDirectPermissions(profile_id: string) {
+    return this.permissionSystemRepository
+      .createQueryBuilder('ps')
+      .select('ss.id', 'section_id')
+      .addSelect('ss.key', 'section_key')
+      .addSelect('ss.parent_id', 'parent_id')
+      .addSelect('ss.path', 'path')
+      .addSelect('tp.id', 'permission_id')
+      .addSelect('sp.inherit_from_parent', 'inherit_from_parent')
+      .innerJoin('ps.sectionPermission', 'sp')
+      .innerJoin('sp.section', 'ss')
+      .innerJoin('sp.permission', 'tp')
+      .where('ps.profile_id = :profile_id', { profile_id })
+      .andWhere('ps.status = :status', { status: true })
+      .andWhere('sp.status = :status', { status: true })
+      .andWhere('tp.status = :status', { status: true })
+      .andWhere('ss.status = :status', { status: true })
+      .getRawMany<{
+        section_id: number;
+        section_key: string;
+        parent_id: number | null;
+        path: string;
+        permission_id: number;
+        inherit_from_parent: boolean;
+      }>();
+  }
+
+  /**
+   * Agrupa los permisos por ID de sección
+   */
+  private groupPermissionsBySection(directPermissions: Array<{ section_id: number; permission_id: number }>): Map<number, Set<number>> {
+    const permissionsBySection = new Map<number, Set<number>>();
+    for (const perm of directPermissions) {
+      if (!permissionsBySection.has(perm.section_id)) {
+        permissionsBySection.set(perm.section_id, new Set());
+      }
+      permissionsBySection.get(perm.section_id)!.add(perm.permission_id);
+    }
+    return permissionsBySection;
+  }
+
+  /**
+   * Construye los permisos finales aplicando herencia
+   */
+  private buildFinalPermissions(
+    permissionsBySection: Map<number, Set<number>>,
+    sectionMap: Map<number, SystemSection>,
+    directPermissions: Array<{ section_id: number; inherit_from_parent: boolean }>,
+    allSections: SystemSection[]
+  ): Map<string, Set<number>> {
+    const finalPermissions = new Map<string, Set<number>>();
+
+    for (const [sectionId, permissions] of permissionsBySection.entries()) {
+      const section = sectionMap.get(sectionId);
+      if (!section) {
+        continue;
+      }
+
+      this.addSectionPermissions(finalPermissions, section.key, permissions);
+      this.inheritParentPermissions(finalPermissions, section, sectionId, directPermissions, sectionMap, permissionsBySection);
+      this.propagateToChildSections(finalPermissions, sectionId, permissions, directPermissions, allSections);
+    }
+
+    return finalPermissions;
+  }
+
+  /**
+   * Agrega permisos directos a una sección
+   */
+  private addSectionPermissions(finalPermissions: Map<string, Set<number>>, sectionKey: string, permissions: Set<number>): void {
+    if (!finalPermissions.has(sectionKey)) {
+      finalPermissions.set(sectionKey, new Set());
+    }
+    permissions.forEach((p) => finalPermissions.get(sectionKey)!.add(p));
+  }
+
+  /**
+   * Hereda permisos del padre si está habilitado inherit_from_parent
+   */
+  private inheritParentPermissions(
+    finalPermissions: Map<string, Set<number>>,
+    section: SystemSection,
+    sectionId: number,
+    directPermissions: Array<{ section_id: number; inherit_from_parent: boolean }>,
+    sectionMap: Map<number, SystemSection>,
+    permissionsBySection: Map<number, Set<number>>
+  ): void {
+    const hasInheritance = directPermissions.some((dp) => dp.section_id === sectionId && dp.inherit_from_parent);
+    if (!hasInheritance || section.parent_id === null) {
+      return;
+    }
+
+    const parentId: number = section.parent_id as number;
+    const parentPermissions = permissionsBySection.get(parentId);
+    if (parentPermissions) {
+      parentPermissions.forEach((p) => finalPermissions.get(section.key)!.add(p));
+    }
+  }
+
+  /**
+   * Propaga permisos a secciones hijas si tienen herencia habilitada
+   */
+  private propagateToChildSections(
+    finalPermissions: Map<string, Set<number>>,
+    sectionId: number,
+    permissions: Set<number>,
+    directPermissions: Array<{ section_id: number; inherit_from_parent: boolean }>,
+    allSections: SystemSection[]
+  ): void {
+    for (const childSection of allSections) {
+      if (childSection.parent_id !== sectionId) {
+        continue;
+      }
+
+      const hasChildInheritance = directPermissions.some((dp) => dp.section_id === childSection.id && dp.inherit_from_parent);
+      if (!hasChildInheritance) {
+        continue;
+      }
+
+      if (!finalPermissions.has(childSection.key)) {
+        finalPermissions.set(childSection.key, new Set());
+      }
+      permissions.forEach((p) => finalPermissions.get(childSection.key)!.add(p));
+    }
+  }
+
+  /**
+   * Convierte el Map de permisos a un Record con arrays ordenados
+   */
+  private convertPermissionsToRecord(finalPermissions: Map<string, Set<number>>): Record<string, number[]> {
+    const result: Record<string, number[]> = {};
+    for (const [key, permissions] of finalPermissions.entries()) {
+      result[key] = Array.from(permissions).sort((a, b) => a - b);
+    }
+    return result;
+  }
+
+  /**
+   * Construye una estructura jerárquica de permisos
+   */
+  private buildHierarchicalPermissions(
+    allSections: SystemSection[],
+    finalPermissions: Map<string, Set<number>>
+  ): Array<{ id: number; key: string; name: string; permissions: number[]; children?: any[] }> {
+    interface PermissionNode {
+      id: number;
+      key: string;
+      name: string;
+      permissions: number[];
+      children: PermissionNode[];
+    }
+
+    const sectionMap = new Map<number, PermissionNode>();
+    const rootSections: PermissionNode[] = [];
+
+    // Crear nodos para cada sección
+    for (const section of allSections) {
+      const permissions = finalPermissions.get(section.key);
+      if (!permissions) {
+        continue;
+      }
+
+      const node: PermissionNode = {
+        id: section.id,
+        key: section.key,
+        name: section.name,
+        permissions: Array.from(permissions).sort((a, b) => a - b),
+        children: [],
+      };
+
+      sectionMap.set(section.id, node);
+    }
+
+    // Construir jerarquía
+    for (const section of allSections) {
+      const node = sectionMap.get(section.id);
+      if (!node) {
+        continue;
+      }
+
+      if (section.parent_id === null) {
+        rootSections.push(node);
+      } else {
+        const parentId = section.parent_id as number;
+        const parent = sectionMap.get(parentId);
+        if (parent) {
+          parent.children.push(node);
+        }
+      }
+    }
+
+    // Limpiar nodos sin hijos (eliminar array vacío)
+    const cleanNode = (node: PermissionNode): void => {
+      if (node.children.length === 0) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        delete (node as any).children;
+      } else {
+        node.children.forEach(cleanNode);
+      }
+    };
+
+    rootSections.forEach(cleanNode);
+    return rootSections;
   }
 }

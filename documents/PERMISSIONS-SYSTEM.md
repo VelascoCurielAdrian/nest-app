@@ -36,7 +36,7 @@ Sistema completo de gestión de permisos basado en roles y secciones del sistema
 ## 🔐 Entidades del Sistema
 
 ### 1. **SystemSection** (Secciones del Sistema)
-Representa los módulos o áreas funcionales del sistema.
+Representa los módulos o áreas funcionales del sistema, ahora con soporte para jerarquía.
 
 ```typescript
 {
@@ -44,16 +44,18 @@ Representa los módulos o áreas funcionales del sistema.
   key: string,        // 'users', 'products', 'sales', etc.
   name: string,       // 'Usuarios', 'Productos', 'Ventas'
   description: string,
+  parent_id: number | null,  // ID del padre (null para raíces)
+  type: string,       // 'section' para raíz, 'submodule' para hijos
   status: boolean
 }
 ```
 
-**Ejemplos:**
-- `users` - Gestión de usuarios
-- `products` - Gestión de productos
-- `sales` - Gestión de ventas
-- `reports` - Reportes
-- `settings` - Configuración
+**Ejemplos jerárquicos:**
+- `users` (section) - Gestión de usuarios
+  - `user-management` (submodule) - Gestión específica
+  - `user-reports` (submodule) - Reportes de usuarios
+- `products` (section) - Gestión de productos
+- `sales` (section) - Gestión de ventas
 
 ### 2. **TypePermission** (Tipos de Permisos)
 Define las acciones que se pueden realizar.
@@ -172,6 +174,7 @@ const permissions = await this.permissionSystemRepository
   .createQueryBuilder('permission_system')
   .select('system_section.id', 'id')
   .addSelect('system_section.key', 'key')
+  .addSelect('system_section.parent_id', 'parent_id')  // Nuevo: incluir padre
   .addSelect(`json_agg(type_permission.id ORDER BY type_permission.id ASC)`, 'permissions')
   .innerJoin('section_permission', 'section_permission', 'permission_system.section_permission_id = section_permission.id')
   .innerJoin('system_section', 'system_section', 'section_permission.section_id = system_section.id')
@@ -182,16 +185,18 @@ const permissions = await this.permissionSystemRepository
   .andWhere('section_permission.status = :status', { status: true })
   .groupBy('system_section.id')
   .addGroupBy('system_section.key')
+  .addGroupBy('system_section.parent_id')  // Nuevo: agrupar por parent_id
   .orderBy('system_section.id', 'ASC')
   .getRawMany();
 ```
 
 ### Ventajas de esta implementación:
 
+✅ **Jerarquía escalable**: Soporte para secciones y submódulos anidados  
+✅ **Herencia de permisos**: Los submódulos heredan permisos de su sección padre  
 ✅ **Type-safe**: Totalmente tipado con TypeScript  
 ✅ **Eficiente**: Una sola consulta con joins optimizados  
-✅ **Escalable**: Fácil agregar nuevas secciones y permisos  
-✅ **Flexible**: Los permisos se pueden activar/desactivar sin eliminar registros  
+✅ **Flexible**: Fácil agregar nuevas secciones y permisos  
 ✅ **Granular**: Control fino sobre qué puede hacer cada perfil en cada sección  
 
 ## 🌱 Seeds
