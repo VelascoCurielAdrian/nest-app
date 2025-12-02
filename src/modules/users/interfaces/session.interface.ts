@@ -1,8 +1,14 @@
+export interface PermissionDetail {
+  id: number;
+  key: string;
+  name: string;
+}
+
 export interface PermissionNode {
   id: number;
   key: string;
   name: string;
-  permissions: number[];
+  permissions: PermissionDetail[];
   children?: PermissionNode[];
 }
 

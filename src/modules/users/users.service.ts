@@ -11,7 +11,7 @@ import { SystemSection } from './entities/system-section.entity';
 import { TypePermission } from './entities/type-permission.entity';
 import { UserProfile } from './entities/user-profile.entity';
 import { User } from './entities/user.entity';
-import { SessionData, UserWithProfile } from './interfaces/session.interface';
+import { PermissionNode, SessionData, UserWithProfile } from './interfaces/session.interface';
 
 @Injectable()
 export class UsersService {
@@ -211,19 +211,23 @@ export class UsersService {
    * Retorna una estructura jerárquica con las secciones y sus hijos
    * Implementa la lógica de herencia basada en parent_id e inherit_from_parent
    */
-  private async getPermissionsForProfile(profile_id: string): Promise<any[]> {
+  private async getPermissionsForProfile(profile_id: string): Promise<PermissionNode[]> {
     try {
       const directPermissions = await this.fetchDirectPermissions(profile_id);
       if (directPermissions.length === 0) {
         return [];
       }
 
+      // Obtener todos los tipos de permisos para mapear ID a detalle
+      const allPermissionTypes = await this.typePermissionRepository.find({ where: { status: true } });
+      const permissionTypeMap = new Map(allPermissionTypes.map((p) => [p.id, { id: p.id, key: p.key, name: p.name }]));
+
       const allSections = await this.systemSectionRepository.find({ where: { status: true }, order: { id: 'ASC' } });
       const sectionMap = new Map<number, SystemSection>(allSections.map((s) => [s.id, s]));
       const permissionsBySection = this.groupPermissionsBySection(directPermissions);
       const finalPermissions = this.buildFinalPermissions(permissionsBySection, sectionMap, directPermissions, allSections);
 
-      return this.buildHierarchicalPermissions(allSections, finalPermissions);
+      return this.buildHierarchicalPermissions(allSections, finalPermissions, permissionTypeMap);
     } catch (error) {
       console.error('Error getting permissions for profile:', error);
       return [];
@@ -325,7 +329,7 @@ export class UsersService {
       return;
     }
 
-    const parentId: number = section.parent_id as number;
+    const parentId: number = section.parent_id;
     const parentPermissions = permissionsBySection.get(parentId);
     if (parentPermissions) {
       parentPermissions.forEach((p) => finalPermissions.get(section.key)!.add(p));
@@ -371,35 +375,34 @@ export class UsersService {
   }
 
   /**
-   * Construye una estructura jerárquica de permisos
+   * Construye una estructura jerárquica de permisos con detalles completos
    */
   private buildHierarchicalPermissions(
     allSections: SystemSection[],
-    finalPermissions: Map<string, Set<number>>
-  ): Array<{ id: number; key: string; name: string; permissions: number[]; children?: any[] }> {
-    interface PermissionNode {
-      id: number;
-      key: string;
-      name: string;
-      permissions: number[];
-      children: PermissionNode[];
-    }
-
+    finalPermissions: Map<string, Set<number>>,
+    permissionTypeMap: Map<number, { id: number; key: string; name: string }>
+  ): PermissionNode[] {
     const sectionMap = new Map<number, PermissionNode>();
     const rootSections: PermissionNode[] = [];
 
-    // Crear nodos para cada sección
+    // Crear nodos para cada sección con detalles de permisos
     for (const section of allSections) {
-      const permissions = finalPermissions.get(section.key);
-      if (!permissions) {
+      const permissionIds = finalPermissions.get(section.key);
+      if (!permissionIds) {
         continue;
       }
+
+      // Convertir IDs a detalles completos de permisos
+      const permissionDetails = Array.from(permissionIds)
+        .map((id) => permissionTypeMap.get(id))
+        .filter((p): p is { id: number; key: string; name: string } => p !== undefined)
+        .sort((a, b) => a.id - b.id);
 
       const node: PermissionNode = {
         id: section.id,
         key: section.key,
         name: section.name,
-        permissions: Array.from(permissions).sort((a, b) => a - b),
+        permissions: permissionDetails,
         children: [],
       };
 
@@ -416,9 +419,12 @@ export class UsersService {
       if (section.parent_id === null) {
         rootSections.push(node);
       } else {
-        const parentId = section.parent_id as number;
+        const parentId: number = section.parent_id;
         const parent = sectionMap.get(parentId);
         if (parent) {
+          if (!parent.children) {
+            parent.children = [];
+          }
           parent.children.push(node);
         }
       }
@@ -426,10 +432,9 @@ export class UsersService {
 
     // Limpiar nodos sin hijos (eliminar array vacío)
     const cleanNode = (node: PermissionNode): void => {
-      if (node.children.length === 0) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        delete (node as any).children;
-      } else {
+      if (node.children && node.children.length === 0) {
+        delete node.children;
+      } else if (node.children) {
         node.children.forEach(cleanNode);
       }
     };
