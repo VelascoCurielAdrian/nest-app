@@ -24,8 +24,6 @@ const PERMISSION_TYPES = [
 const SYSTEM_SECTIONS = [
   { key: 'users', name: 'Usuarios', description: 'Gestión de usuarios del sistema', order: 1 },
   { key: 'profiles', name: 'Perfiles', description: 'Gestión de perfiles de usuario', order: 2 },
-  { key: 'products', name: 'Productos', description: 'Gestión de productos', order: 3 },
-  { key: 'sales', name: 'Ventas', description: 'Gestión de ventas', order: 4 },
   { key: 'reports', name: 'Reportes', description: 'Generación de reportes', order: 5 },
   { key: 'settings', name: 'Configuración', description: 'Configuración del sistema', order: 6 },
 ];
@@ -41,8 +39,6 @@ const SECTION_PERMISSIONS_MAP = {
   'user-management': ['create', 'view', 'edit', 'list', 'export'],
   'user-reports': ['view', 'export'],
   profiles: ['create', 'delete', 'view', 'edit', 'list'],
-  products: ['create', 'delete', 'view', 'edit', 'list', 'export', 'import', 'archive', 'restore'],
-  sales: ['create', 'view', 'edit', 'list', 'export', 'approve', 'reject'],
   reports: ['view', 'export'],
   settings: ['view', 'edit'],
 };
