@@ -65,10 +65,6 @@ async function seedSectionsSystem() {
       if (!profile) {
         throw new Error("El perfil 'Master' no fue encontrado.");
       }
-
-      // ==========================================
-      // 1. CREAR TIPOS DE PERMISOS
-      // ==========================================
       console.info('📝 Creando tipos de permisos base...');
       const permissionsMap = new Map<string, TypePermission>();
 

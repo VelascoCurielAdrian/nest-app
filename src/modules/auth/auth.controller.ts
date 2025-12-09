@@ -43,9 +43,6 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async verifySession(@Req() req: FastifyRequest) {
     const token = getCookie(req, 'access_token');
-    if (!token) {
-      return undefined;
-    }
     const payload = await this.authService.verifyToken(token);
     return { session: payload };
   }

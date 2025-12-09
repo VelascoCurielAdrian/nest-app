@@ -44,11 +44,11 @@ export class AuthService {
     }
 
     // Construir payload y firmar token
-    const payload = { sub: user.id, username: user.username };
+
+    const userWithProfile = await this.usersService.getUserWithProfileAndPermissions(user.id);
+    const payload = { sub: user.id, username: user.username, ...userWithProfile };
     const access_token = await this.jwtService.signAsync(payload);
     // Obtener datos completos del usuario con perfil y permisos
-    const userWithProfile = await this.usersService.getUserWithProfileAndPermissions(user.id);
-
     if (userWithProfile) {
       return {
         access_token,
@@ -67,9 +67,17 @@ export class AuthService {
     };
   }
 
-  async verifyToken(token: string): Promise<{ sub: string; username: string; iat: number; exp: number }> {
+  async verifyToken(token: string | undefined): Promise<{ sub: string; username: string; iat: number; exp: number }> {
     try {
-      return await this.jwtService.verifyAsync<{ sub: string; username: string; iat: number; exp: number }>(token);
+      if (!token) {
+        throw new UnauthorizedException('Token is required');
+      }
+
+      const payload = await this.jwtService.verifyAsync<{ sub: string; username: string; iat: number; exp: number }>(token);
+      if (!payload || !payload.sub) {
+        throw new UnauthorizedException('Invalid token payload');
+      }
+      return payload;
     } catch {
       throw new UnauthorizedException('Invalid session');
     }

@@ -12,4 +12,12 @@ export default () => ({
     secret: process.env.JWT_SECRET || 'defaultSecret',
     expiresIn: process.env.JWT_EXPIRES_IN || '1d',
   },
+  cors: {
+    // Orígenes permitidos - puedes agregar más según necesites
+    allowedOrigins: process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(',')
+      : ['http://localhost:3000', 'http://localhost:44269', 'http://127.0.0.1:44269'],
+    // Credentials permite enviar cookies y headers de autenticación
+    credentials: true,
+  },
 });
