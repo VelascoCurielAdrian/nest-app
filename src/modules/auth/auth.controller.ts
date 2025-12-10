@@ -18,7 +18,7 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() loginDto: LoginDto, @Res({ passthrough: false }) res: FastifyReply) {
+  async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: FastifyReply) {
     const result = await this.authService.login(loginDto);
 
     const { access_token, ...userData } = result;

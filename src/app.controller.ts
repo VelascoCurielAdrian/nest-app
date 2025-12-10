@@ -8,12 +8,6 @@ import { Public, CurrentUser } from './modules/auth';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Public()
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
-  }
-
   @Get('protected')
   getProtected(@CurrentUser() user: { sub: string; username: string }) {
     return {

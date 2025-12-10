@@ -30,6 +30,7 @@ async function bootstrap() {
 
   // Configurar CORS con Fastify - ANTES de cualquier otra configuración
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   await app.register(fastifyCors, {
     origin: (origin: string | undefined, callback: (err: Error | null, allow: boolean) => void) => {
       // Permitir peticiones sin origen (como Postman, curl, etc.)
